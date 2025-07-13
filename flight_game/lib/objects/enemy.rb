@@ -2,8 +2,9 @@
 
 require_relative 'base'
 
-# Enemy class represents the opponents that move down
 class Enemy < Base
+  SCORE_VALUE = 100
+
   def self.image
     'O'
   end

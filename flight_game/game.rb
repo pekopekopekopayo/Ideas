@@ -44,6 +44,7 @@ class Game
     @enemies = []
     @last_enemy_move_time = Time.now
     @running = true
+    @score = 0
   end
 
   def game_loop
@@ -63,9 +64,9 @@ class Game
 
   def render
     Curses.clear
+    draw_ui
     @board.draw(self)
     draw_game_objects
-    draw_ui
     Curses.refresh
   end
 
@@ -91,6 +92,7 @@ class Game
     @enemies.reject! do |enemy|
       if bullet.collision?(enemy)
         show_explosion(enemy)
+        @score += Enemy::SCORE_VALUE
         true
       end
     end
@@ -126,8 +128,11 @@ class Game
   end
 
   def draw_ui
-    Curses.setpos(0, 0)
-    Curses.addstr('방향키로 이동, 스페이스로 발사, q로 종료')
+    # UI를 보드의 BORDER_OFFSET 위치에 표시
+    Curses.setpos(Board::BORDER_OFFSET - 1, 2)
+    Curses.addstr("점수: #{@score}")
+    Curses.setpos(Board::BORDER_OFFSET - 2, 2)
+    Curses.addstr('방향키:이동 스페이스:발사 Q:종료')
   end
 
   def move_enemies
@@ -149,8 +154,8 @@ class Game
     center_x, center_y = @board.center_position
 
     Curses.clear
-    draw_at(center_y, center_x - 5, 'Game Over!')
-    draw_at(center_y + 1, center_x - 10, '아무 키나 누르면 종료됩니다')
+    draw_at(center_y - 1, center_x - 8, "총 획득 점수: #{@score}점")
+    draw_at(center_y + 1, center_x - 8, '아무 키로 종료')
     Curses.refresh
     wait_for_key
   end
@@ -171,7 +176,7 @@ class Game
     when Curses::KEY_DOWN, 's'  then move_player(:down)
     when Curses::KEY_LEFT, 'a'  then move_player(:left)
     when Curses::KEY_RIGHT, 'd' then move_player(:right)
-    when ' ', 32                then fire_bullet
+    when ' '                then fire_bullet
     when 'q', 'Q' then cleanup
     end
   end
